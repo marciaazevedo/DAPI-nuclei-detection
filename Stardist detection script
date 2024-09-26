@@ -1,0 +1,27 @@
+import qupath.ext.stardist.StarDist2D
+import qupath.lib.scripting.QP
+
+// IMPORTANT! Replace this with the path to your StarDist model
+// that takes a single channel as input (e.g. dsb2018_heavy_augment.pb)
+
+def stardist = StarDist2D
+    .builder(modelPath)
+    .channels('DAPI')            // Extract channel called 'DAPI'
+    .normalizePercentiles(1, 99) // Percentile normalization
+    .threshold(0.5)              // Probability (detection) threshold
+    .pixelSize(0.7)              // Resolution for detection
+    .cellExpansion(5)            // Expand nuclei to approximate cell boundaries
+    .measureShape()              // Add shape measurements
+    .build()
+	
+
+def pathObjects = QP.getSelectedObjects()
+
+def imageData = QP.getCurrentImageData()
+if (pathObjects.isEmpty()) {
+    QP.getLogger().error("No parent objects are selected!")
+    return
+}
+stardist.detectObjects(imageData, pathObjects)
+stardist.close() 
+println('Done!')
